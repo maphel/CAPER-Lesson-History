@@ -2,8 +2,8 @@
 // @name         CAPER Lesson History Helper
 // @namespace    https://github.com/maphel/CAPER-Lesson-History
 // @version      1.3.2
-// @updateURL    https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/main/index.js
-// @downloadURL  https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/main/index.js
+// @updateURL    https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/refs/heads/main/index.js
+// @downloadURL  https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/refs/heads/main/index.js
 // @description  Capture CAPER lesson/store submissions, keep a local history, and provide quick reuse tools directly on the page. Includes a debug harness for testing off-site.
 // @author       maphel
 // @match        https://caper.sks.go.th/*
@@ -26,6 +26,8 @@
   const DEBUG_QUERY_PARAM = 'caper-history-debug'
   const DEBUG_STORAGE_KEY = 'caperHistoryDebug'
   const PANEL_COLLAPSED_KEY = 'caperHistoryPanelCollapsed'
+  const LESSON_FORM_CANDIDATE_SELECTOR =
+    '#form-create-iip-lesson-record, form[action*="lesson/store"], form[id*="lesson"][id*="record"]'
 
   const DEBUG_MODE = detectDebugMode()
   if (DEBUG_MODE) {
@@ -38,10 +40,13 @@
   let entriesContainer = null
   let emptyStateEl = null
   let toggleButton = null
+  let panelBody = null
   let lastRender = ''
   let formPresenceObserver = null
   let lastDetectedFormPresence = null
   let formPresenceEvaluateHandle = null
+  let modalPanelControlActive = false
+  let panelHeightAdjustHandle = null
 
   const historyReady = loadHistory()
   const panelStateReady = loadPanelState()
@@ -392,6 +397,7 @@
       </div>
     `
 
+    panelBody = panelRoot.querySelector('.caper-history-panel__body')
     entriesContainer = panelRoot.querySelector('.caper-history-list')
     emptyStateEl = panelRoot.querySelector('.caper-history-empty')
     toggleButton = panelRoot.querySelector('.caper-history-toggle')
@@ -443,7 +449,114 @@
 
     document.body.appendChild(panelRoot)
     applyCollapsedState()
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', schedulePanelHeightRefresh)
+    }
+    schedulePanelHeightRefresh()
     initFormPresenceWatcher()
+  }
+
+  function initFormPresenceWatcher() {
+    if (formPresenceObserver) {
+      return
+    }
+
+    const scheduleEvaluation = () => {
+      if (formPresenceEvaluateHandle != null) {
+        return
+      }
+
+      const runner = () => {
+        formPresenceEvaluateHandle = null
+        evaluateFormPresence()
+      }
+
+      if (typeof window.requestAnimationFrame === 'function') {
+        formPresenceEvaluateHandle = window.requestAnimationFrame(runner)
+      } else {
+        formPresenceEvaluateHandle = window.setTimeout(runner, 75)
+      }
+    }
+
+    evaluateFormPresence()
+
+    if (typeof MutationObserver === 'function') {
+      formPresenceObserver = new MutationObserver(() => {
+        scheduleEvaluation()
+      })
+      formPresenceObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style'],
+      })
+    } else {
+      const intervalId = window.setInterval(evaluateFormPresence, 300)
+      formPresenceObserver = {
+        disconnect() {
+          window.clearInterval(intervalId)
+        },
+      }
+    }
+
+    window.addEventListener('focus', scheduleEvaluation, true)
+    window.addEventListener('popstate', scheduleEvaluation)
+    window.addEventListener('hashchange', scheduleEvaluation)
+  }
+
+  function evaluateFormPresence() {
+    const presence = computeFormPresence()
+    const previous = lastDetectedFormPresence
+    const changed =
+      !previous ||
+      previous.hasModalForm !== presence.hasModalForm ||
+      previous.hasInlineForm !== presence.hasInlineForm
+
+    if (changed) {
+      handleFormPresenceChange(presence, previous)
+    }
+
+    lastDetectedFormPresence = presence
+  }
+
+  function computeFormPresence() {
+    return {
+      hasModalForm: Boolean(detectModalLessonForm()),
+      hasInlineForm: Boolean(detectInlineLessonForm()),
+    }
+  }
+
+  function handleFormPresenceChange(nextPresence, previousPresence) {
+    if (nextPresence.hasModalForm) {
+      engageModalPanelMode()
+      return
+    }
+
+    if (previousPresence?.hasModalForm) {
+      disengageModalPanelMode()
+    }
+  }
+
+  function engageModalPanelMode() {
+    if (modalPanelControlActive) {
+      return
+    }
+
+    modalPanelControlActive = true
+    if (panelCollapsed) {
+      setPanelCollapsed(false, { persist: false })
+    }
+  }
+
+  function disengageModalPanelMode() {
+    if (!modalPanelControlActive) {
+      return
+    }
+
+    modalPanelControlActive = false
+    if (!panelCollapsed) {
+      setPanelCollapsed(true, { persist: false })
+    }
   }
 
   function registerDebugHarness() {
@@ -569,18 +682,21 @@
       entriesContainer.innerHTML = ''
       emptyStateEl.style.display = 'block'
       lastRender = ''
+      schedulePanelHeightRefresh()
       return
     }
 
     const markup = historyCache.map((entry) => historyEntryTemplate(entry)).join('')
 
     if (markup === lastRender) {
+      schedulePanelHeightRefresh()
       return
     }
 
     entriesContainer.innerHTML = markup
     emptyStateEl.style.display = 'none'
     lastRender = markup
+    schedulePanelHeightRefresh()
   }
 
   function historyEntryTemplate(entry) {
@@ -678,17 +794,122 @@
   }
 
   function detectLessonForm() {
-    const form = document.querySelector('#form-create-iip-lesson-record, form[action*="lesson/store"], form[id*="lesson"][id*="record"]')
-    if (form) {
-      return form
+    const modalForm = detectModalLessonForm()
+    if (modalForm) {
+      return modalForm
     }
 
-    const modal = document.querySelector('.modal-dialog .modal-content form')
-    if (modal) {
-      return modal
+    const inlineForm = detectInlineLessonForm()
+    if (inlineForm) {
+      return inlineForm
     }
 
     return document.body
+  }
+
+  function detectInlineLessonForm() {
+    return findFirstLessonForm((form) => !form.closest('.modal, .modal-dialog'))
+  }
+
+  function detectModalLessonForm() {
+    return findFirstLessonForm((form) => isFormInsideVisibleModal(form))
+  }
+
+  function findFirstLessonForm(filterFn) {
+    const candidates = document.querySelectorAll(LESSON_FORM_CANDIDATE_SELECTOR)
+    for (const candidate of candidates) {
+      if (isLessonFormCandidate(candidate) && filterFn(candidate)) {
+        return candidate
+      }
+    }
+
+    const allForms = document.querySelectorAll('form')
+    for (const form of allForms) {
+      if (isLessonFormCandidate(form) && filterFn(form)) {
+        return form
+      }
+    }
+
+    return null
+  }
+
+  function isLessonFormCandidate(element) {
+    if (!(element instanceof HTMLFormElement)) {
+      return false
+    }
+
+    const action = (element.getAttribute('action') || '').toLowerCase()
+    if (action.includes('lesson/store')) {
+      return true
+    }
+
+    const id = (element.id || '').toLowerCase()
+    if (id.includes('lesson') && id.includes('record')) {
+      return true
+    }
+
+    if (
+      element.querySelector('[name="iip_lesson_record_description"], textarea#iip_lesson_record_description') ||
+      element.querySelector('[name="iip_lesson_record_result"], select[name="iip_lesson_record_result"]') ||
+      element.querySelector('[name="iip_lesson_record_date"], input#evaluationDate')
+    ) {
+      return true
+    }
+
+    return false
+  }
+
+  function isFormInsideVisibleModal(form) {
+    const modalOrDialog = form.closest('.modal, .modal-dialog')
+    if (!modalOrDialog) {
+      return false
+    }
+
+    const modalElement = modalOrDialog.classList.contains('modal-dialog')
+      ? modalOrDialog.closest('.modal') || modalOrDialog
+      : modalOrDialog
+
+    return isModalElementVisible(modalElement)
+  }
+
+  function isModalElementVisible(modalElement) {
+    if (!modalElement) {
+      return false
+    }
+
+    if (modalElement.classList.contains('show') || modalElement.classList.contains('in')) {
+      return true
+    }
+
+    if (modalElement.getAttribute('aria-hidden') === 'false') {
+      return true
+    }
+
+    if (modalElement.style) {
+      if (modalElement.style.display && modalElement.style.display !== 'none') {
+        return true
+      }
+      if (modalElement.style.visibility && modalElement.style.visibility !== 'hidden') {
+        return true
+      }
+    }
+
+    if (typeof window.getComputedStyle === 'function') {
+      try {
+        const computed = window.getComputedStyle(modalElement)
+        if (computed && computed.display !== 'none' && computed.visibility !== 'hidden' && computed.opacity !== '0') {
+          return true
+        }
+      } catch (error) {
+        // ignore style errors and continue to size checks
+      }
+    }
+
+    if (modalElement.offsetWidth > 0 || modalElement.offsetHeight > 0) {
+      return true
+    }
+
+    return false
   }
 
   function applyValue(element, value, options) {
@@ -879,6 +1100,7 @@
 
     panelCollapsed = collapsed
     applyCollapsedState()
+    schedulePanelHeightRefresh()
 
     if (persist) {
       gmSetValue(PANEL_COLLAPSED_KEY, panelCollapsed)
@@ -896,6 +1118,84 @@
     toggleButton.setAttribute('aria-expanded', String(!panelCollapsed))
     toggleButton.setAttribute('aria-label', label)
     toggleButton.querySelector('.caper-history-toggle__icon').textContent = icon
+  }
+
+  function schedulePanelHeightRefresh() {
+    if (typeof window === 'undefined' || !panelBody) {
+      return
+    }
+
+    if (panelHeightAdjustHandle != null) {
+      if (typeof window.cancelAnimationFrame === 'function') {
+        window.cancelAnimationFrame(panelHeightAdjustHandle)
+      }
+      window.clearTimeout(panelHeightAdjustHandle)
+      panelHeightAdjustHandle = null
+    }
+
+    const runner = () => {
+      panelHeightAdjustHandle = null
+      applyPanelBodyHeight()
+    }
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      panelHeightAdjustHandle = window.requestAnimationFrame(runner)
+    } else {
+      panelHeightAdjustHandle = window.setTimeout(runner, 60)
+    }
+  }
+
+  function applyPanelBodyHeight() {
+    if (!panelBody) {
+      return
+    }
+
+    if (panelCollapsed) {
+      panelBody.style.maxHeight = ''
+      panelBody.style.minHeight = ''
+      return
+    }
+
+    const firstEntry = panelBody.querySelector('.caper-history-entry')
+    let targetElement = firstEntry
+
+    if (!targetElement && emptyStateEl && emptyStateEl.style.display !== 'none') {
+      targetElement = emptyStateEl
+    }
+
+    if (!targetElement) {
+      panelBody.style.maxHeight = ''
+      panelBody.style.minHeight = ''
+      return
+    }
+
+    const bodyStyles = getComputedStyleSafe(panelBody)
+    const gapValue = parseFloat(bodyStyles.rowGap || bodyStyles.gap || '0') || 0
+    const listHasMultipleEntries = Boolean(entriesContainer && entriesContainer.children && entriesContainer.children.length > 1)
+    const additionalGap = listHasMultipleEntries ? gapValue : 0
+
+    const targetHeight = targetElement.getBoundingClientRect().height
+    if (!targetHeight) {
+      panelBody.style.maxHeight = ''
+      panelBody.style.minHeight = ''
+      return
+    }
+
+    const appliedHeight = Math.ceil(targetHeight + additionalGap)
+    panelBody.style.maxHeight = `${appliedHeight}px`
+    panelBody.style.minHeight = `${Math.ceil(targetHeight)}px`
+  }
+
+  function getComputedStyleSafe(element) {
+    if (!element || typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
+      return {}
+    }
+
+    try {
+      return window.getComputedStyle(element)
+    } catch (error) {
+      return {}
+    }
   }
 
   function splitDateRange(raw) {
@@ -1042,6 +1342,21 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: #ffbcd9 transparent;
+      }
+      .caper-history-panel__body::-webkit-scrollbar {
+        width: 6px;
+      }
+      .caper-history-panel__body::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .caper-history-panel__body::-webkit-scrollbar-thumb {
+        background: #ffbcd9;
+        border-radius: 999px;
+      }
+      .caper-history-panel__body::-webkit-scrollbar-thumb:hover {
+        background: #ff96c2;
       }
       .caper-history-empty {
         margin: 0;
