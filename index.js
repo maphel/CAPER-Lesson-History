@@ -374,6 +374,32 @@
     return payload
   }
 
+  function ensureEntryPayload(entry) {
+    if (!entry || typeof entry !== 'object') {
+      return {}
+    }
+
+    const existing = entry.payload
+    if (existing && typeof existing === 'object') {
+      return existing
+    }
+
+    if (typeof existing === 'string' && existing) {
+      const parsedFromExisting = parsePayload(existing)
+      entry.payload = parsedFromExisting
+      return parsedFromExisting
+    }
+
+    if (typeof entry.body === 'string' && entry.body) {
+      const parsedFromBody = parsePayload(entry.body)
+      entry.payload = parsedFromBody
+      return parsedFromBody
+    }
+
+    entry.payload = {}
+    return entry.payload
+  }
+
   function buildPanel() {
     if (panelRoot) {
       return
@@ -700,9 +726,10 @@
   }
 
   function historyEntryTemplate(entry) {
-    const dateField = toDisplayString(entry.payload['iip_lesson_record_date'])
-    const description = toDisplayString(entry.payload['iip_lesson_record_description'])
-    const grade = toDisplayString(entry.payload['iip_lesson_record_result'])
+    const payload = ensureEntryPayload(entry)
+    const dateField = toDisplayString(payload['iip_lesson_record_date'])
+    const description = toDisplayString(payload['iip_lesson_record_description'])
+    const grade = toDisplayString(payload['iip_lesson_record_result'])
     const capturedAt = formatTimestamp(entry.capturedAt)
     const statusLabel = entry.status !== undefined && entry.status !== null ? `Status ${entry.status}` : 'Pending'
     const errorLabel = entry.error ? ` · Error: ${entry.error}` : ''
