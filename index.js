@@ -953,11 +953,11 @@
         flex-direction: column;
         gap: 10px;
         padding: 14px 16px;
-        background: #ffffff;
-        color: #1f2937;
+        background: #fff5fb;
+        color: #4a1f40;
         border-radius: 12px;
-        border: 1px solid #dbeafe;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+        border: 1px solid #ffd1e6;
+        box-shadow: 0 12px 30px rgba(255, 105, 180, 0.18);
         z-index: 2147480000;
         font-family: "Prompt", "Kanit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         pointer-events: auto;
@@ -968,7 +968,7 @@
         align-items: center;
         gap: 12px;
         padding-bottom: 8px;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #ffd1e6;
       }
       .caper-history-panel__heading {
         display: flex;
@@ -979,10 +979,10 @@
         margin: 0;
         font-size: 0.95rem;
         font-weight: 600;
-        color: #0f172a;
+        color: #3a1531;
       }
       .caper-history-toggle {
-        border: 1px solid #bfdbfe;
+        border: 1px solid #ffb6d9;
         border-radius: 999px;
         width: 28px;
         height: 28px;
@@ -992,13 +992,13 @@
         font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
-        background: #eff6ff;
-        color: #1d4ed8;
+        background: #ffe0ef;
+        color: #e24998;
         transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
       }
       .caper-history-toggle:hover {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #ffcae3;
+        color: #d63384;
         transform: translateY(-1px);
       }
       .caper-history-toggle__icon {
@@ -1008,16 +1008,16 @@
       .caper-history-clear {
         padding: 4px 12px;
         border-radius: 999px;
-        border: 1px solid #cbd5f5;
+        border: 1px solid #ffbcd9;
         font-size: 0.75rem;
         font-weight: 500;
         cursor: pointer;
-        background: #f8fafc;
-        color: #1e3a8a;
+        background: #fff0f7;
+        color: #d94883;
         transition: background 0.2s ease, transform 0.2s ease;
       }
       .caper-history-clear:hover {
-        background: #e0f2fe;
+        background: #ffd6eb;
         transform: translateY(-1px);
       }
       .caper-history-panel__body {
@@ -1029,7 +1029,7 @@
       .caper-history-empty {
         margin: 0;
         text-align: center;
-        color: #94a3b8;
+        color: #cc7fa5;
       }
       .caper-history-list {
         display: flex;
@@ -1059,14 +1059,14 @@
         font-size: 0.85rem;
       }
       .caper-history-entry {
-        background: #f8fbff;
+        background: #fffafd;
         border-radius: 10px;
         padding: 10px 12px;
         display: flex;
         flex-direction: column;
         gap: 8px;
-        border: 1px solid #dbeafe;
-        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+        border: 1px solid #ffd6eb;
+        box-shadow: 0 8px 18px rgba(255, 182, 193, 0.25);
       }
       .caper-history-entry__header {
         display: flex;
@@ -1074,7 +1074,7 @@
         align-items: baseline;
         gap: 8px;
         padding-bottom: 4px;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #ffd6eb;
       }
       .caper-history-entry__title {
         display: flex;
@@ -1083,28 +1083,28 @@
       }
       .caper-history-entry__label {
         font-size: 0.7rem;
-        color: #64748b;
+        color: #b45c8b;
       }
       .caper-history-entry__value {
         font-size: 0.9rem;
         font-weight: 600;
-        color: #0f172a;
+        color: #4b1d3f;
         line-height: 1.3;
       }
       .caper-history-entry__grade {
         font-size: 0.8rem;
         font-weight: 600;
-        background: #e0f2fe;
-        color: #1d4ed8;
+        background: #ffe3f2;
+        color: #d63384;
         padding: 2px 10px;
         border-radius: 999px;
-        border: 1px solid #bfdbfe;
+        border: 1px solid #ffb6d9;
       }
       .caper-history-entry__description {
         margin: 0;
         font-size: 0.82rem;
         line-height: 1.45;
-        color: #475569;
+        color: #6b2a50;
         white-space: pre-wrap;
       }
       .caper-history-entry__footer {
@@ -1112,11 +1112,11 @@
         flex-direction: column;
         gap: 6px;
         padding-top: 6px;
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid #ffd6eb;
       }
       .caper-history-entry__meta {
         font-size: 0.68rem;
-        color: #94a3b8;
+        color: #c488ac;
       }
       .caper-history-entry__actions {
         display: flex;
@@ -1125,38 +1125,38 @@
       }
       .caper-history-entry__actions button {
         flex: 1 1 48%;
-        border: 1px solid #cbd5f5;
+        border: 1px solid #ff6fa4;
         border-radius: 6px;
         padding: 6px 10px;
         font-size: 0.72rem;
         font-weight: 500;
         cursor: pointer;
-        background: #2563eb;
+        background: #ff85b1;
         color: #ffffff;
         transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       }
       .caper-history-entry__actions button:hover {
-        background: #1d4ed8;
-        box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25);
+        background: #ff6fa4;
+        box-shadow: 0 6px 12px rgba(255, 111, 164, 0.25);
         transform: translateY(-1px);
       }
       .caper-history-entry__actions .caper-history-entry__delete {
-        background: #f87171;
-        border-color: #ef4444;
+        background: #ff9cab;
+        border-color: #ff8091;
         color: #ffffff;
       }
       .caper-history-entry__actions .caper-history-entry__delete:hover {
-        background: #ef4444;
-        box-shadow: 0 6px 12px rgba(239, 68, 68, 0.25);
+        background: #ff6b7d;
+        box-shadow: 0 6px 12px rgba(255, 107, 125, 0.25);
       }
       .caper-history-entry__actions [data-action="paste"] {
-        background: #0ea5e9;
-        border-color: #0284c7;
-        color: #ffffff;
+        background: #bde8d6;
+        border-color: #91d4bd;
+        color: #20756a;
       }
       .caper-history-entry__actions [data-action="paste"]:hover {
-        background: #0284c7;
-        box-shadow: 0 6px 12px rgba(14, 165, 233, 0.25);
+        background: #a7e0c9;
+        box-shadow: 0 6px 12px rgba(145, 212, 189, 0.25);
       }
       .caper-history-debug {
         position: fixed !important;
@@ -1164,10 +1164,10 @@
         width: 260px;
         padding: 14px 16px;
         border-radius: 12px;
-        background: #ffffff;
-        color: #1f2937;
-        border: 1px solid #dbeafe;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+        background: #fff5fb;
+        color: #4a1f40;
+        border: 1px solid #ffd1e6;
+        box-shadow: 0 12px 30px rgba(255, 105, 180, 0.18);
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -1190,6 +1190,7 @@
         }
       }
     `
+
 
     if (typeof GM_addStyle === 'function') {
       GM_addStyle(styles)
