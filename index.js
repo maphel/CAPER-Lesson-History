@@ -5,12 +5,8 @@
 // @updateURL    https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/main/index.js
 // @downloadURL  https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/main/index.js
 // @description  Capture CAPER lesson/store submissions, keep a local history, and provide quick reuse tools directly on the page. Includes a debug harness for testing off-site.
-// @author       You
+// @author       maphel
 // @match        https://caper.sks.go.th/*
-// @match        http://localhost/*
-// @match        https://localhost/*
-// @match        http://127.0.0.1/*
-// @match        https://127.0.0.1/*
 // @run-at       document-start
 // @grant        GM.getValue
 // @grant        GM.setValue
@@ -950,20 +946,20 @@
     const styles = `
       .caper-history-panel {
         position: fixed !important;
-        inset: 24px 24px auto auto !important;
-        width: 320px;
-        max-height: calc(100vh - 48px);
+        inset: 20px 20px auto auto !important;
+        width: 280px;
+        max-height: calc(100vh - 40px);
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 16px;
-        background: rgba(15, 23, 42, 0.92);
-        color: #f8fafc;
-        border-radius: 16px;
-        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+        gap: 10px;
+        padding: 14px 16px;
+        background: #ffffff;
+        color: #1f2937;
+        border-radius: 12px;
+        border: 1px solid #dbeafe;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
         z-index: 2147480000;
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        backdrop-filter: blur(12px);
+        font-family: "Prompt", "Kanit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         pointer-events: auto;
       }
       .caper-history-panel__header {
@@ -971,34 +967,38 @@
         justify-content: space-between;
         align-items: center;
         gap: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
       }
       .caper-history-panel__heading {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
       }
       .caper-history-panel__title {
         margin: 0;
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         font-weight: 600;
+        color: #0f172a;
       }
       .caper-history-toggle {
-        border: none;
+        border: 1px solid #bfdbfe;
         border-radius: 999px;
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
-        background: rgba(99, 102, 241, 0.18);
-        color: #e0e7ff;
-        transition: background 0.2s ease, transform 0.2s ease;
+        background: #eff6ff;
+        color: #1d4ed8;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
       }
       .caper-history-toggle:hover {
-        background: rgba(129, 140, 248, 0.3);
+        background: #dbeafe;
+        color: #1e40af;
         transform: translateY(-1px);
       }
       .caper-history-toggle__icon {
@@ -1006,40 +1006,40 @@
         line-height: 1;
       }
       .caper-history-clear {
-        padding: 4px 10px;
+        padding: 4px 12px;
         border-radius: 999px;
-        border: none;
-        font-size: 0.8rem;
-        font-weight: 600;
+        border: 1px solid #cbd5f5;
+        font-size: 0.75rem;
+        font-weight: 500;
         cursor: pointer;
-        background: rgba(255, 255, 255, 0.12);
-        color: inherit;
+        background: #f8fafc;
+        color: #1e3a8a;
         transition: background 0.2s ease, transform 0.2s ease;
       }
       .caper-history-clear:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: #e0f2fe;
         transform: translateY(-1px);
       }
       .caper-history-panel__body {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
       }
       .caper-history-empty {
         margin: 0;
         text-align: center;
-        color: rgba(248, 250, 252, 0.7);
+        color: #94a3b8;
       }
       .caper-history-list {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
       }
       .caper-history-panel--collapsed {
-        width: 240px;
-        padding: 12px 14px;
-        gap: 8px;
+        width: 220px;
+        padding: 10px 12px;
+        gap: 6px;
       }
       .caper-history-panel--collapsed .caper-history-panel__body {
         display: none;
@@ -1051,122 +1051,141 @@
         width: 100%;
         justify-content: space-between;
       }
+      .caper-history-panel--collapsed .caper-history-panel__header {
+        padding-bottom: 0;
+        border-bottom: none;
+      }
       .caper-history-panel--collapsed .caper-history-panel__title {
-        font-size: 0.95rem;
+        font-size: 0.85rem;
       }
       .caper-history-entry {
-        background: rgba(15, 23, 42, 0.72);
-        border-radius: 12px;
-        padding: 12px 14px;
+        background: #f8fbff;
+        border-radius: 10px;
+        padding: 10px 12px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        border: 1px solid rgba(148, 163, 184, 0.25);
+        gap: 8px;
+        border: 1px solid #dbeafe;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
       }
       .caper-history-entry__header {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        gap: 10px;
+        gap: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #e2e8f0;
       }
       .caper-history-entry__title {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
       }
       .caper-history-entry__label {
-        font-size: 0.75rem;
-        opacity: 0.7;
+        font-size: 0.7rem;
+        color: #64748b;
       }
       .caper-history-entry__value {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         font-weight: 600;
+        color: #0f172a;
+        line-height: 1.3;
       }
       .caper-history-entry__grade {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
-        background: rgba(99, 102, 241, 0.2);
-        color: #c7d2fe;
-        padding: 4px 10px;
+        background: #e0f2fe;
+        color: #1d4ed8;
+        padding: 2px 10px;
         border-radius: 999px;
+        border: 1px solid #bfdbfe;
       }
       .caper-history-entry__description {
-        margin: 4px 0 0;
-        font-size: 0.85rem;
-        line-height: 1.4;
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        color: #475569;
         white-space: pre-wrap;
       }
       .caper-history-entry__footer {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #e2e8f0;
       }
       .caper-history-entry__meta {
-        font-size: 0.7rem;
-        opacity: 0.65;
+        font-size: 0.68rem;
+        color: #94a3b8;
       }
       .caper-history-entry__actions {
         display: flex;
-        gap: 6px;
+        gap: 8px;
         flex-wrap: wrap;
       }
       .caper-history-entry__actions button {
-        flex: 1 1 45%;
-        border: none;
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
+        flex: 1 1 48%;
+        border: 1px solid #cbd5f5;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 0.72rem;
+        font-weight: 500;
         cursor: pointer;
-        background: rgba(99, 102, 241, 0.22);
-        color: #e0e7ff;
-        transition: background 0.2s ease, transform 0.2s ease;
+        background: #2563eb;
+        color: #ffffff;
+        transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       }
       .caper-history-entry__actions button:hover {
-        background: rgba(129, 140, 248, 0.3);
+        background: #1d4ed8;
+        box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25);
         transform: translateY(-1px);
       }
       .caper-history-entry__actions .caper-history-entry__delete {
-        background: rgba(248, 113, 113, 0.25);
-        color: #fecaca;
+        background: #f87171;
+        border-color: #ef4444;
+        color: #ffffff;
       }
       .caper-history-entry__actions .caper-history-entry__delete:hover {
-        background: rgba(239, 68, 68, 0.35);
+        background: #ef4444;
+        box-shadow: 0 6px 12px rgba(239, 68, 68, 0.25);
       }
       .caper-history-entry__actions [data-action="paste"] {
-        background: rgba(20, 184, 166, 0.25);
-        color: #ccfbf1;
+        background: #0ea5e9;
+        border-color: #0284c7;
+        color: #ffffff;
       }
       .caper-history-entry__actions [data-action="paste"]:hover {
-        background: rgba(45, 212, 191, 0.35);
+        background: #0284c7;
+        box-shadow: 0 6px 12px rgba(14, 165, 233, 0.25);
       }
       .caper-history-debug {
         position: fixed !important;
-        inset: auto auto 24px 24px !important;
+        inset: auto auto 20px 20px !important;
         width: 260px;
-        padding: 16px;
-        border-radius: 16px;
-        background: rgba(15, 23, 42, 0.92);
-        color: #f8fafc;
-        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #1f2937;
+        border: 1px solid #dbeafe;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        gap: 10px;
+        font-family: "Prompt", "Kanit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         z-index: 2147480000;
         pointer-events: auto;
       }
       @media (max-width: 900px) {
         .caper-history-panel {
-          inset: 16px !important;
+          inset: 12px !important;
           width: auto;
-          max-height: calc(100vh - 32px);
+          max-height: calc(100vh - 24px);
         }
         .caper-history-entry__actions button {
           flex: 1 1 100%;
         }
         .caper-history-debug {
-          inset: auto 16px 16px 16px !important;
+          inset: auto 12px 12px 12px !important;
           width: auto;
         }
       }
