@@ -64,12 +64,32 @@
     renderHistory()
   })
 
-  async function loadHistory() {
-    historyCache = await gmGetValue(STORAGE_KEY, [])
-    if (!Array.isArray(historyCache)) {
+async function loadHistory() {
+  const stored = await gmGetValue(STORAGE_KEY, [])
+  if (Array.isArray(stored)) {
+    historyCache = stored
+    return
+  }
+
+  if (typeof stored === 'string' && stored.trim()) {
+    try {
+      historyCache = JSON.parse(stored)
+      if (!Array.isArray(historyCache)) {
+        historyCache = []
+      }
+    } catch (error) {
       historyCache = []
     }
+    return
   }
+
+  if (stored && typeof stored === 'object' && Array.isArray(stored.entries)) {
+    historyCache = stored.entries
+    return
+  }
+
+  historyCache = []
+}
 
   async function loadPanelState() {
     const stored = await gmGetValue(PANEL_COLLAPSED_KEY, false)
