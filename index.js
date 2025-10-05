@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CAPER Lesson History Helper
 // @namespace    https://github.com/maphel/CAPER-Lesson-History
-// @version      1.3.1
+// @version      1.3.2
 // @updateURL    https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/main/index.js
 // @downloadURL  https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/main/index.js
 // @description  Capture CAPER lesson/store submissions, keep a local history, and provide quick reuse tools directly on the page. Includes a debug harness for testing off-site.
@@ -39,6 +39,9 @@
   let emptyStateEl = null
   let toggleButton = null
   let lastRender = ''
+  let formPresenceObserver = null
+  let lastDetectedFormPresence = null
+  let formPresenceEvaluateHandle = null
 
   const historyReady = loadHistory()
   const panelStateReady = loadPanelState()
@@ -402,9 +405,7 @@
       })
 
     toggleButton.addEventListener('click', () => {
-      panelCollapsed = !panelCollapsed
-      applyCollapsedState()
-      gmSetValue(PANEL_COLLAPSED_KEY, panelCollapsed)
+      setPanelCollapsed(!panelCollapsed, { persist: true })
     })
 
     entriesContainer.addEventListener('click', async (event) => {
@@ -442,6 +443,7 @@
 
     document.body.appendChild(panelRoot)
     applyCollapsedState()
+    initFormPresenceWatcher()
   }
 
   function registerDebugHarness() {
@@ -866,6 +868,21 @@
     }
 
     element.dispatchEvent(new Event('blur', { bubbles: true }))
+  }
+
+  function setPanelCollapsed(collapsed, options = {}) {
+    const { persist = true } = options
+
+    if (panelCollapsed === collapsed) {
+      return
+    }
+
+    panelCollapsed = collapsed
+    applyCollapsedState()
+
+    if (persist) {
+      gmSetValue(PANEL_COLLAPSED_KEY, panelCollapsed)
+    }
   }
 
   function applyCollapsedState() {
