@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CAPER Lesson History Helper
 // @namespace    https://github.com/maphel/CAPER-Lesson-History
-// @version      1.3.2
+// @version      1.3.3
 // @updateURL    https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/refs/heads/main/index.js
 // @downloadURL  https://raw.githubusercontent.com/maphel/CAPER-Lesson-History/refs/heads/main/index.js
 // @description  Capture CAPER lesson/store submissions, keep a local history, and provide quick reuse tools directly on the page. Includes a debug harness for testing off-site.
